@@ -2,7 +2,7 @@
 
 FC = mpif90
 ifeq ($(METHOD), dbg)
-FFLAGS = -O0 -g -Wall -Wextra -std=f2018 -pedantic -ffpe-trap=invalid,overflow,zero
+FFLAGS = -O0 -g -Wall -Wextra -pedantic -ffpe-trap=invalid,overflow,zero
 BOUNDS = -fcheck=all
 else 
 FFLAGS = -O3

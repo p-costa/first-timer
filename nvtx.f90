@@ -6,22 +6,22 @@ module mod_nvtx
   use iso_c_binding
   implicit none
   enum, bind(c)
-    enumerator :: COLOR_G = 1 ! 1 -> green
-    enumerator :: COLOR_B     ! 2 -> blue
-    enumerator :: COLOR_Y     ! 3 -> yellow
-    enumerator :: COLOR_M     ! 4 -> magenta
-    enumerator :: COLOR_C     ! 5 -> cyan
-    enumerator :: COLOR_R     ! 6 -> red
-    enumerator :: COLOR_W     ! 7 -> white
+    enumerator :: COLOR_G = 1 ! green
+    enumerator :: COLOR_B = 2 ! blue
+    enumerator :: COLOR_Y = 3 ! yellow
+    enumerator :: COLOR_M = 4 ! magenta
+    enumerator :: COLOR_C = 5 ! cyan
+    enumerator :: COLOR_R = 6 ! red
+    enumerator :: COLOR_W = 7 ! white
   end enum
   integer(kind=C_INT32_T), private :: col(7) = [ &
-                                                 int(Z'0000ff00',kind=C_INT32_T), & ! green
-                                                 int(Z'000000ff',kind=C_INT32_T), & ! blue
-                                                 int(Z'00ffff00',kind=C_INT32_T), & ! yellow
-                                                 int(Z'00ff00ff',kind=C_INT32_T), & ! magenta
-                                                 int(Z'0000ffff',kind=C_INT32_T), & ! cyan
-                                                 int(Z'00ff0000',kind=C_INT32_T), & ! red
-                                                 int(Z'00ffffff',kind=C_INT32_T)  & ! white
+                                                 int(Z'0000ff00',kind=C_INT32_T), & ! 1 -> green
+                                                 int(Z'000000ff',kind=C_INT32_T), & ! 2 -> blue
+                                                 int(Z'00ffff00',kind=C_INT32_T), & ! 3 -> yellow
+                                                 int(Z'00ff00ff',kind=C_INT32_T), & ! 4 -> magenta
+                                                 int(Z'0000ffff',kind=C_INT32_T), & ! 5 -> cyan
+                                                 int(Z'00ff0000',kind=C_INT32_T), & ! 6 -> red
+                                                 int(Z'00ffffff',kind=C_INT32_T)  & ! 7 -> white
                                                ]
   character, private, target :: tempName(256)
   type, bind(C) :: nvtxEventAttributes

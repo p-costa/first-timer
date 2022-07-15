@@ -42,9 +42,9 @@ contains
       write(stdo,*) '*** timing results [s] ***'
       write(stdo,*) ''
       do i = 1,ntimers
-        write(stdo, '(3A)')       'Label: "',trim(timer_names(i)), '"'
+        write(stdo, '(3A)'      ) 'Label: "',trim(timer_names(i)), '"'
         write(stdo, '(A,3E15.7)') 'Maximum, minimum, average elapsed time:', timing_results(i,1:3)
-        write(stdo, '(A,I7)')     'Number of calls:', timer_counts(i)
+        write(stdo, '(A,I7)'    ) 'Number of calls:', timer_counts(i)
         write(stdo, '(A,3E15.7)') 'Maximum, minimum, average elapsed time (per call average):',timing_results(i,1:3)/timer_counts(i)
         write(stdo,*) ''
       enddo
@@ -123,7 +123,7 @@ contains
   real(dp) function timer_time(timer_name)
     character(*), intent(in) :: timer_name
     integer :: idx
-    timer_time = -1d0
+    timer_time = -1._dp
     idx = timer_search(timer_name)
     if (idx > 0) then
       timer_time = timer_elapsed(idx)

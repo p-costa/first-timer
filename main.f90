@@ -2,7 +2,6 @@ program main
   use mpi
   use mod_timer
   implicit none
-  
   integer :: ierr,myid
   
   call MPI_Init(ierr)
@@ -29,7 +28,6 @@ program main
   call timer_stop('Third Event')
   
   call timer_print(myid)
-  
   call timer_cleanup
   
   call MPI_Finalize(ierr)
