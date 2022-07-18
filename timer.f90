@@ -63,8 +63,8 @@ contains
                timer_elapsed(0), &
                timer_is_nvtx(0))
     endif
+    !
     idx = timer_search(timer_name)
-    
     if (idx <= 0) then
       ntimers = ntimers + 1
       call concatenate_c(timer_names,timer_name)
