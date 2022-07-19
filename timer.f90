@@ -14,7 +14,9 @@ module mod_timer
   integer, parameter :: max_name_len = 50
   character(max_name_len), allocatable :: timer_names(:)
   integer , allocatable :: timer_counts(:)
-  real(dp), allocatable :: timer_tictoc(:),timer_elapsed(:)
+  real(dp), allocatable :: timer_tictoc(:),timer_elapsed_acc(:), &
+                                           timer_elapsed_min(:), &
+                                           timer_elapsed_max(:)
   logical , allocatable :: timer_is_nvtx(:)
   integer :: ntimers = 0
 contains
@@ -22,7 +24,9 @@ contains
     use, intrinsic :: iso_fortran_env, only: stdo => output_unit
     integer , parameter :: MYID_PRINT = 0
     integer , intent(in), optional :: myid_arg
-    real(dp), allocatable, dimension(:,:) :: timing_results
+    real(dp), allocatable :: timing_results_acc(:,:), &
+                             timing_results_min(:,:), &
+                             timing_results_max(:,:)
     integer  :: i,myid,nproc,ierr
     !
     if(present(myid_arg)) then
@@ -30,24 +34,48 @@ contains
     else
       myid = MYID_PRINT
     endif
-    allocate(timing_results(ntimers,3))
+    allocate(timing_results_acc(ntimers,3), &
+             timing_results_min(ntimers,3), &
+             timing_results_max(ntimers,3))
     call MPI_COMM_SIZE(MPI_COMM_WORLD,nproc,ierr)
-    call MPI_ALLREDUCE(timer_elapsed(:),timing_results(:,1),ntimers,MPI_DOUBLE_PRECISION,MPI_MIN,MPI_COMM_WORLD,ierr)
-    call MPI_ALLREDUCE(timer_elapsed(:),timing_results(:,2),ntimers,MPI_DOUBLE_PRECISION,MPI_MAX,MPI_COMM_WORLD,ierr)
-    call MPI_ALLREDUCE(timer_elapsed(:),timing_results(:,3),ntimers,MPI_DOUBLE_PRECISION,MPI_SUM,MPI_COMM_WORLD,ierr)
-    timing_results(:,3) = timing_results(:,3)/nproc
+    call MPI_ALLREDUCE(timer_elapsed_acc(:),timing_results_acc(:,1),ntimers,MPI_DOUBLE_PRECISION,MPI_MIN,MPI_COMM_WORLD,ierr)
+    call MPI_ALLREDUCE(timer_elapsed_acc(:),timing_results_acc(:,2),ntimers,MPI_DOUBLE_PRECISION,MPI_MAX,MPI_COMM_WORLD,ierr)
+    call MPI_ALLREDUCE(timer_elapsed_acc(:),timing_results_acc(:,3),ntimers,MPI_DOUBLE_PRECISION,MPI_SUM,MPI_COMM_WORLD,ierr)
+    timing_results_acc(:,3) = timing_results_acc(:,3)/nproc
+    call MPI_ALLREDUCE(timer_elapsed_min(:),timing_results_min(:,1),ntimers,MPI_DOUBLE_PRECISION,MPI_MIN,MPI_COMM_WORLD,ierr)
+    call MPI_ALLREDUCE(timer_elapsed_min(:),timing_results_min(:,2),ntimers,MPI_DOUBLE_PRECISION,MPI_MAX,MPI_COMM_WORLD,ierr)
+    call MPI_ALLREDUCE(timer_elapsed_min(:),timing_results_min(:,3),ntimers,MPI_DOUBLE_PRECISION,MPI_SUM,MPI_COMM_WORLD,ierr)
+    timing_results_min(:,3) = timing_results_min(:,3)/nproc
+    call MPI_ALLREDUCE(timer_elapsed_max(:),timing_results_max(:,1),ntimers,MPI_DOUBLE_PRECISION,MPI_MIN,MPI_COMM_WORLD,ierr)
+    call MPI_ALLREDUCE(timer_elapsed_max(:),timing_results_max(:,2),ntimers,MPI_DOUBLE_PRECISION,MPI_MAX,MPI_COMM_WORLD,ierr)
+    call MPI_ALLREDUCE(timer_elapsed_max(:),timing_results_max(:,3),ntimers,MPI_DOUBLE_PRECISION,MPI_SUM,MPI_COMM_WORLD,ierr)
+    timing_results_max(:,3) = timing_results_max(:,3)/nproc
     !
     if(myid == MYID_PRINT) then
       write(stdo,*) ''
       write(stdo,*) '*** timing results [s] ***'
       write(stdo,*) ''
-      do i = 1,ntimers
-        write(stdo, '(3A)'      ) 'Label: "',trim(timer_names(i)), '"'
-        write(stdo, '(A,3E15.7)') 'Maximum, minimum, average elapsed time:', timing_results(i,1:3)
-        write(stdo, '(A,I7)'    ) 'Number of calls:', timer_counts(i)
-        write(stdo, '(A,3E15.7)') 'Maximum, minimum, average elapsed time (per call average):',timing_results(i,1:3)/timer_counts(i)
-        write(stdo,*) ''
-      enddo
+      if(nproc == 1) then
+        do i = 1,ntimers
+          write(stdo, '(3A)'      ) 'Label: "',trim(timer_names(i)), '"'
+          write(stdo, '(A,3E15.7)') 'Elapsed time:', timing_results_acc(i,3:3)
+          write(stdo, '(A,I7)'    ) 'Number of calls:', timer_counts(i)
+          write(stdo, '(A,3E15.7)') 'Elapsed time (per call average):',timing_results_acc(i,3:3)/timer_counts(i)
+          write(stdo, '(A,3E15.7)') 'Elapsed time (per call minimum):',timing_results_min(i,3:3)
+          write(stdo, '(A,3E15.7)') 'Elapsed time (per call maximum):',timing_results_max(i,3:3)
+          write(stdo,*) ''
+        enddo
+      else
+        do i = 1,ntimers
+          write(stdo, '(3A)'      ) 'Label: "',trim(timer_names(i)), '"'
+          write(stdo, '(A,3E15.7)') 'Maximum, minimum, average elapsed time per task:', timing_results_acc(i,1:3)
+          write(stdo, '(A,I7)'    ) 'Number of calls:', timer_counts(i)
+          write(stdo, '(A,3E15.7)') 'Maximum, minimum, average elapsed time per task (per call average):',timing_results_acc(i,1:3)/timer_counts(i)
+          write(stdo, '(A,3E15.7)') 'Maximum, minimum, average elapsed time per task (per call minimum):',timing_results_min(i,1:3)
+          write(stdo, '(A,3E15.7)') 'Maximum, minimum, average elapsed time per task (per call maximum):',timing_results_max(i,1:3)
+          write(stdo,*) ''
+        enddo
+      endif
     endif
   end subroutine timer_print
   subroutine timer_start(timer_name,nvtx_id,nvtx_color)
@@ -57,21 +85,25 @@ contains
     integer :: idx
     !
     if(.not.allocated(timer_names)) then
-      allocate(timer_names(  0), &
-               timer_counts( 0), &
-               timer_tictoc( 0), &
-               timer_elapsed(0), &
-               timer_is_nvtx(0))
+      allocate(timer_names(      0), &
+               timer_counts(     0), &
+               timer_tictoc(     0), &
+               timer_elapsed_acc(0), &
+               timer_elapsed_min(0), &
+               timer_elapsed_max(0), &
+               timer_is_nvtx(    0))
     endif
     !
     idx = timer_search(timer_name)
     if (idx <= 0) then
       ntimers = ntimers + 1
       call concatenate_c(timer_names,timer_name)
-      timer_counts  = [timer_counts ,0         ]
-      timer_tictoc  = [timer_tictoc ,0._dp     ]
-      timer_elapsed = [timer_elapsed,0._dp     ]
-      timer_is_nvtx = [timer_is_nvtx,.false.   ]
+      timer_counts      = [timer_counts     ,0          ]
+      timer_tictoc      = [timer_tictoc     ,0._dp      ]
+      timer_elapsed_acc = [timer_elapsed_acc,0._dp      ]
+      timer_elapsed_min = [timer_elapsed_min,huge(0._dp)]
+      timer_elapsed_max = [timer_elapsed_max,tiny(0._dp)]
+      timer_is_nvtx     = [timer_is_nvtx    ,.false.    ]
       idx = ntimers
     endif
     timer_tictoc(idx) = MPI_WTIME()
@@ -95,9 +127,11 @@ contains
     integer  :: idx
     idx = timer_search(timer_name)
     if (idx > 0) then
-      timer_tictoc(idx)  = MPI_WTIME() - timer_tictoc(idx)
-      timer_elapsed(idx) = timer_elapsed(idx) + timer_tictoc(idx)
-      timer_counts(idx)  = timer_counts(idx) + 1
+      timer_tictoc(idx)      = MPI_WTIME() - timer_tictoc(idx)
+      timer_elapsed_acc(idx) =    (timer_elapsed_acc(idx)+timer_tictoc(idx))
+      timer_elapsed_min(idx) = min(timer_elapsed_min(idx),timer_tictoc(idx))
+      timer_elapsed_max(idx) = max(timer_elapsed_max(idx),timer_tictoc(idx))
+      timer_counts(idx)      = timer_counts(idx) + 1
       if(timer_is_nvtx(idx)) then
 #if defined(_USE_NVTX)
         call nvtxEndRange 
@@ -107,7 +141,7 @@ contains
   end subroutine timer_stop
   subroutine timer_cleanup
     if (.not.allocated(timer_names)) then
-      deallocate(timer_names,timer_counts,timer_elapsed)
+      deallocate(timer_names,timer_counts,timer_elapsed_acc,timer_elapsed_min,timer_elapsed_max)
     endif
   end subroutine timer_cleanup
   integer function timer_search(timer_name)
@@ -126,7 +160,7 @@ contains
     timer_time = -1._dp
     idx = timer_search(timer_name)
     if (idx > 0) then
-      timer_time = timer_elapsed(idx)
+      timer_time = timer_elapsed_acc(idx)
     endif
   end function timer_time
   subroutine concatenate_c(arr,val)
