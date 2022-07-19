@@ -26,6 +26,10 @@ program main
   call timer_start('Third Event',3,'c')
   call sleep(1)
   call timer_stop('Third Event')
+
+  call timer_start('Fourth Event',0)
+  call sleep(1)
+  call timer_stop('Fourth Event')
   
   call timer_print(myid)
   call timer_cleanup
