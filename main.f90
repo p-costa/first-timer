@@ -14,27 +14,27 @@ program main
     if(myid == 0) print*,''
 
     call timer_start('First Thing',1)
-    call sleep(1)
+    call sleep(0.15)
     call timer_stop('First Thing')
     
     call timer_start('Second Instance',2)
-    call sleep(1)
+    call sleep(0.15)
     call timer_stop('Second Instance')
     
     call timer_start('Second Instance',2)
-    call sleep(1)
+    call sleep(0.15)
     call timer_stop('Second Instance')
     
     call timer_start('First Thing',1)
-    call sleep(1)
+    call sleep(0.15)
     call timer_stop('First Thing')
 
     call timer_start('Third Event',3,'c')
-    call sleep(1)
+    call sleep(0.25)
     call timer_stop('Third Event')
 
     call timer_start('Fourth Event',0)
-    call sleep(1)
+    call sleep(0.35)
     call timer_stop('Fourth Event')
 
   end do
@@ -44,3 +44,14 @@ program main
   
   call MPI_Finalize(ierr)
 end program main
+subroutine sleep(s)
+  implicit none
+  interface
+    subroutine usleep(us) bind (C)
+      use iso_c_binding,only:c_int
+      integer(c_int), value :: us
+    end subroutine usleep
+  end interface
+  real, intent(in) :: s
+  call usleep(int(s*10**6))
+end subroutine sleep
