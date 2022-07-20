@@ -116,6 +116,7 @@ contains
     is_nvtx = .false.
     if(     present(nvtx_id_inc)) then
       nvtx_id = nvtx_id_inc
+      if(nvtx_id == huge(1)) nvtx_id_inc = 0 ! avoid overflow
       nvtx_id_inc = nvtx_id_inc + 1
       is_nvtx = .true.
     else if(present(nvtx_id_fix)) then
