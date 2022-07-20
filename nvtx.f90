@@ -65,7 +65,7 @@ contains
     ! move scalar trimmed_name into character array tempName
     do i=1,LEN(trim(name)) + 1
        tempName(i) = trimmed_name(i:i)
-    enddo
+    end do
     if ( .not. present(id)) then
       call nvtxRangePush(tempName)
     else
@@ -89,7 +89,7 @@ contains
         case default
           icolor = COLOR_W
         end select
-      endif
+      end if
       event%color=col(icolor)
       event%message=c_loc(tempName)
       call nvtxRangePushEx(event)

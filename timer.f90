@@ -33,7 +33,7 @@ contains
       myid = myid_arg
     else
       myid = MYID_PRINT
-    endif
+    end if
     allocate(timing_results_acc(ntimers,3), &
              timing_results_min(ntimers,3), &
              timing_results_max(ntimers,3))
@@ -64,7 +64,7 @@ contains
           write(stdo, '(A,3E15.7)') 'Elapsed time (per call minimum):',timing_results_min(i,3:3)
           write(stdo, '(A,3E15.7)') 'Elapsed time (per call maximum):',timing_results_max(i,3:3)
           write(stdo,*) ''
-        enddo
+        end do
       else
         do i = 1,ntimers
           write(stdo, '(3A)'      ) 'Label: "',trim(timer_names(i)), '"'
@@ -74,9 +74,9 @@ contains
           write(stdo, '(A,3E15.7)') 'Maximum, minimum, average elapsed time per task (per call minimum):',timing_results_min(i,1:3)
           write(stdo, '(A,3E15.7)') 'Maximum, minimum, average elapsed time per task (per call maximum):',timing_results_max(i,1:3)
           write(stdo,*) ''
-        enddo
-      endif
-    endif
+        end do
+      end if
+    end if
   end subroutine timer_print
   subroutine timer_start(timer_name,nvtx_id,nvtx_color)
     character(*), intent(in) :: timer_name
@@ -92,7 +92,7 @@ contains
                timer_elapsed_min(0), &
                timer_elapsed_max(0), &
                timer_is_nvtx(    0))
-    endif
+    end if
     !
     idx = timer_search(timer_name)
     if (idx <= 0) then
@@ -105,7 +105,7 @@ contains
       timer_elapsed_max = [timer_elapsed_max,tiny(0._dp)]
       timer_is_nvtx     = [timer_is_nvtx    ,.false.    ]
       idx = ntimers
-    endif
+    end if
     timer_tictoc(idx) = MPI_WTIME()
 #if defined(_USE_NVTX)
     if(present(nvtx_id)) then
@@ -114,12 +114,12 @@ contains
           call nvtxStartRange(trim(timer_name),nvtx_id,nvtx_color)
         else
           call nvtxStartRange(trim(timer_name),nvtx_id)
-        endif
+        end if
       else
         call nvtxStartRange(trim(timer_name))
-      endif
+      end if
       timer_is_nvtx(idx) = .true.
-    endif
+    end if
 #endif
   end subroutine timer_start
   subroutine timer_stop(timer_name)
@@ -136,13 +136,13 @@ contains
 #if defined(_USE_NVTX)
         call nvtxEndRange 
 #endif
-      endif
-    endif
+      end if
+    end if
   end subroutine timer_stop
   subroutine timer_cleanup
     if (.not.allocated(timer_names)) then
       deallocate(timer_names,timer_counts,timer_elapsed_acc,timer_elapsed_min,timer_elapsed_max)
-    endif
+    end if
   end subroutine timer_cleanup
   integer function timer_search(timer_name)
     character(*), intent(in) :: timer_name
@@ -151,8 +151,8 @@ contains
     do i = 1,ntimers
       if (timer_names(i) == timer_name) then
         timer_search = i
-      endif
-    enddo
+      end if
+    end do
   end function timer_search
   real(dp) function timer_time(timer_name)
     character(*), intent(in) :: timer_name
@@ -161,7 +161,7 @@ contains
     idx = timer_search(timer_name)
     if (idx > 0) then
       timer_time = timer_elapsed_acc(idx)
-    endif
+    end if
   end function timer_time
   subroutine concatenate_c(arr,val)
     character(*), intent(inout), allocatable, dimension(:) :: arr
