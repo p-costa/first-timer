@@ -60,9 +60,9 @@ contains
           write(stdo,'(3A)'      ) 'Label: "',trim(timer_names(i)), '"'
           write(stdo,'(A,3E15.7)') 'Elapsed time:', timing_results_acc(i,3:3)
           write(stdo,'(A,I7)'    ) 'Number of calls:', timer_counts(i)
-          write(stdo,'(A,3E15.7)') 'Elapsed time (per call average):',timing_results_acc(i,3:3)/timer_counts(i)
-          write(stdo,'(A,3E15.7)') 'Elapsed time (per call minimum):',timing_results_min(i,3:3)
-          write(stdo,'(A,3E15.7)') 'Elapsed time (per call maximum):',timing_results_max(i,3:3)
+          write(stdo,'(A,1E15.7)') 'Elapsed time (per call average):',timing_results_acc(i,3:3)/timer_counts(i)
+          write(stdo,'(A,1E15.7)') 'Elapsed time (per call minimum):',timing_results_min(i,3:3)
+          write(stdo,'(A,1E15.7)') 'Elapsed time (per call maximum):',timing_results_max(i,3:3)
           write(stdo,*) ''
         end do
       else
