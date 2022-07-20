@@ -14,7 +14,10 @@ program main
     if(myid == 0) print*,''
 
     call timer_start('First Thing',1)
-    call sleep(0.15)
+    call sleep(0.10)
+    call timer_start('Sub-First Thing',0)
+    call sleep(0.05)
+    call timer_stop('Sub-First Thing')
     call timer_stop('First Thing')
     
     call timer_start('Second Instance',2)
