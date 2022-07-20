@@ -63,36 +63,37 @@ contains
     integer :: i,icolor
     trimmed_name=trim(name)//c_null_char
     ! move scalar trimmed_name into character array tempName
-    do i=1,LEN(trim(name)) + 1
+    do i=1,len(trim(name))+1
        tempName(i) = trimmed_name(i:i)
     end do
-    if ( .not. present(id)) then
-      call nvtxRangePush(tempName)
-    else
+    if(present(color)) then
+      select case(color)
+      case('g')
+        icolor = COLOR_G
+      case('b')
+        icolor = COLOR_B
+      case('y')
+        icolor = COLOR_Y
+      case('m')
+        icolor = COLOR_M
+      case('c')
+        icolor = COLOR_C
+      case('r')
+        icolor = COLOR_R
+      case('w')
+        icolor = COLOR_W
+      case default
+        icolor = COLOR_W
+      end select
+    else if(present(id)) then
       icolor = mod(id-1,size(col))+1
-      if(present(color)) then
-        select case(color)
-        case('g')
-          icolor = COLOR_G
-        case('b')
-          icolor = COLOR_B
-        case('y')
-          icolor = COLOR_Y
-        case('m')
-          icolor = COLOR_M
-        case('c')
-          icolor = COLOR_C
-        case('r')
-          icolor = COLOR_R
-        case('w')
-          icolor = COLOR_W
-        case default
-          icolor = COLOR_W
-        end select
-      end if
+    end if
+    if (present(id).or.present(color)) then
       event%color=col(icolor)
       event%message=c_loc(tempName)
       call nvtxRangePushEx(event)
+    else
+      call nvtxRangePush(tempName)
     end if
   end subroutine
   subroutine nvtxEndRange

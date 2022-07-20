@@ -81,11 +81,13 @@ contains
       end if
     end if
   end subroutine timer_print
-  subroutine timer_start(timer_name,nvtx_id,nvtx_color)
+  subroutine timer_start(timer_name,nvtx_id_fix,nvtx_color,nvtx_id_inc)
     character(*), intent(in) :: timer_name
-    integer         , intent(in), optional :: nvtx_id    ! if <= 0, only label and no color
-    character(len=1), intent(in), optional :: nvtx_color ! g/b/y/m/c/r/w following matplotlib's convention
-    integer :: idx
+    integer         , intent(in   ), optional :: nvtx_id_fix ! if <= 0, only label and no color
+    character(len=1), intent(in   ), optional :: nvtx_color  ! g/b/y/m/c/r/w following matplotlib's convention
+    integer         , intent(inout), optional :: nvtx_id_inc ! to increment the id, e.g.: call timer_start(name,nvtx_id_inc=i_nvtx)
+    integer :: idx,nvtx_id
+    logical :: is_nvtx
     !
     if(.not.allocated(timer_names)) then
       allocate(timer_names(      0), &
@@ -111,13 +113,26 @@ contains
     end if
     timer_tictoc(idx) = MPI_WTIME()
 #if defined(_USE_NVTX)
-    if(present(nvtx_id)) then
+    is_nvtx = .false.
+    if(     present(nvtx_id_inc)) then
+      nvtx_id = nvtx_id_inc
+      nvtx_id_inc = nvtx_id_inc + 1
+      is_nvtx = .true.
+    else if(present(nvtx_id_fix)) then
+      nvtx_id = nvtx_id_fix
+      is_nvtx = .true.
+    else if(present(nvtx_color )) then
+      is_nvtx = .true.
+    endif
+    if(is_nvtx) then
       if(nvtx_id > 0) then
         if(present(nvtx_color)) then
-          call nvtxStartRange(trim(timer_name),nvtx_id,nvtx_color)
+          call nvtxStartRange(trim(timer_name),id=nvtx_id,color=nvtx_color)
         else
-          call nvtxStartRange(trim(timer_name),nvtx_id)
+          call nvtxStartRange(trim(timer_name),id=nvtx_id)
         end if
+      else if(present(nvtx_color)) then
+        call nvtxStartRange(trim(timer_name),color=nvtx_color)
       else
         call nvtxStartRange(trim(timer_name))
       end if
