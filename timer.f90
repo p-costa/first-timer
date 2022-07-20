@@ -57,22 +57,25 @@ contains
       write(stdo,*) ''
       if(nproc == 1) then
         do i = 1,ntimers
-          write(stdo, '(3A)'      ) 'Label: "',trim(timer_names(i)), '"'
-          write(stdo, '(A,3E15.7)') 'Elapsed time:', timing_results_acc(i,3:3)
-          write(stdo, '(A,I7)'    ) 'Number of calls:', timer_counts(i)
-          write(stdo, '(A,3E15.7)') 'Elapsed time (per call average):',timing_results_acc(i,3:3)/timer_counts(i)
-          write(stdo, '(A,3E15.7)') 'Elapsed time (per call minimum):',timing_results_min(i,3:3)
-          write(stdo, '(A,3E15.7)') 'Elapsed time (per call maximum):',timing_results_max(i,3:3)
+          write(stdo,'(3A)'      ) 'Label: "',trim(timer_names(i)), '"'
+          write(stdo,'(A,3E15.7)') 'Elapsed time:', timing_results_acc(i,3:3)
+          write(stdo,'(A,I7)'    ) 'Number of calls:', timer_counts(i)
+          write(stdo,'(A,3E15.7)') 'Elapsed time (per call average):',timing_results_acc(i,3:3)/timer_counts(i)
+          write(stdo,'(A,3E15.7)') 'Elapsed time (per call minimum):',timing_results_min(i,3:3)
+          write(stdo,'(A,3E15.7)') 'Elapsed time (per call maximum):',timing_results_max(i,3:3)
           write(stdo,*) ''
         end do
       else
         do i = 1,ntimers
-          write(stdo, '(3A)'      ) 'Label: "',trim(timer_names(i)), '"'
-          write(stdo, '(A,3E15.7)') 'Maximum, minimum, average elapsed time per task:', timing_results_acc(i,1:3)
-          write(stdo, '(A,I7)'    ) 'Number of calls:', timer_counts(i)
-          write(stdo, '(A,3E15.7)') 'Maximum, minimum, average elapsed time per task (per call average):',timing_results_acc(i,1:3)/timer_counts(i)
-          write(stdo, '(A,3E15.7)') 'Maximum, minimum, average elapsed time per task (per call minimum):',timing_results_min(i,1:3)
-          write(stdo, '(A,3E15.7)') 'Maximum, minimum, average elapsed time per task (per call maximum):',timing_results_max(i,1:3)
+          write(stdo,'(3A)'      ) 'Label: "',trim(timer_names(i)), '"'
+          write(stdo,'(A,3E15.7)') 'Maximum, minimum, average elapsed time per task:', timing_results_acc(i,1:3)
+          write(stdo,'(A,I7)'    ) 'Number of calls:', timer_counts(i)
+          write(stdo,'(A,3E15.7)') 'Maximum, minimum, average elapsed time per task (per call average):', &
+                                    timing_results_acc(i,1:3)/timer_counts(i)
+          write(stdo,'(A,3E15.7)') 'Maximum, minimum, average elapsed time per task (per call minimum):', &
+                                    timing_results_min(i,1:3)
+          write(stdo,'(A,3E15.7)') 'Maximum, minimum, average elapsed time per task (per call maximum):', &
+                                    timing_results_max(i,1:3)
           write(stdo,*) ''
         end do
       end if
