@@ -2,6 +2,9 @@ program main
   use mpi
   use mod_timer
   implicit none
+  interface sleep
+    procedure sleep_r
+  end interface
   integer, parameter :: n = 3
   integer :: i,ierr,myid
   
@@ -46,15 +49,16 @@ program main
   call timer_cleanup
   
   call MPI_Finalize(ierr)
+contains
+  subroutine sleep_r(s)
+    implicit none
+    interface
+      subroutine usleep(us) bind (C)
+        use iso_c_binding,only:c_int
+        integer(c_int), value :: us
+      end subroutine usleep
+    end interface
+    real, intent(in) :: s
+    call usleep(int(s*10**6))
+  end subroutine sleep_r
 end program main
-subroutine sleep(s)
-  implicit none
-  interface
-    subroutine usleep(us) bind (C)
-      use iso_c_binding,only:c_int
-      integer(c_int), value :: us
-    end subroutine usleep
-  end interface
-  real, intent(in) :: s
-  call usleep(int(s*10**6))
-end subroutine sleep
