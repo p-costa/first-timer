@@ -9,7 +9,7 @@ module mod_timer
 #endif
   implicit none
   private
-  public :: timer_start,timer_stop,timer_print,timer_cleanup
+  public :: timer_tic,timer_toc,timer_print,timer_cleanup
   !
   integer, parameter :: max_name_len = 50
   character(max_name_len), allocatable :: timer_names(:)
@@ -81,11 +81,11 @@ contains
       end if
     end if
   end subroutine timer_print
-  subroutine timer_start(timer_name,nvtx_id_fix,nvtx_color,nvtx_id_inc)
+  subroutine timer_tic(timer_name,nvtx_id_fix,nvtx_color,nvtx_id_inc)
     character(*), intent(in) :: timer_name
     integer         , intent(in   ), optional :: nvtx_id_fix ! if <= 0, only label and no color
     character(len=1), intent(in   ), optional :: nvtx_color  ! g/b/y/m/c/r/w following matplotlib's convention
-    integer         , intent(inout), optional :: nvtx_id_inc ! to increment the id, e.g.: call timer_start(name,nvtx_id_inc=i_nvtx)
+    integer         , intent(inout), optional :: nvtx_id_inc ! to increment the id, e.g.: call timer_tic(name,nvtx_id_inc=i_nvtx)
     integer :: idx,nvtx_id
     logical :: is_nvtx
     !
@@ -140,8 +140,8 @@ contains
       timer_is_nvtx(idx) = .true.
     end if
 #endif
-  end subroutine timer_start
-  subroutine timer_stop(timer_name)
+  end subroutine timer_tic
+  subroutine timer_toc(timer_name)
     character(*), intent(in) :: timer_name
     integer  :: idx
     idx = timer_search(timer_name)
@@ -157,7 +157,7 @@ contains
 #endif
       end if
     end if
-  end subroutine timer_stop
+  end subroutine timer_toc
   subroutine timer_cleanup
     if (.not.allocated(timer_names)) then
       deallocate(timer_names,timer_counts,timer_elapsed_acc,timer_elapsed_min,timer_elapsed_max)

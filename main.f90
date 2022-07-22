@@ -16,32 +16,32 @@ program main
     if(myid == 0) print*,'Iteration #',i,'of',n
     if(myid == 0) print*,''
 
-    call timer_start('First Thing',1)
+    call timer_tic('First Thing',1)
     call sleep(0.10)
-    call timer_start('Sub-First Thing',0)
+    call timer_tic('Sub-First Thing',0)
     call sleep(0.05)
-    call timer_stop('Sub-First Thing')
-    call timer_stop('First Thing')
+    call timer_toc('Sub-First Thing')
+    call timer_toc('First Thing')
     
-    call timer_start('Second Instance',2)
+    call timer_tic('Second Instance',2)
     call sleep(0.15)
-    call timer_stop('Second Instance')
+    call timer_toc('Second Instance')
     
-    call timer_start('Second Instance',2)
+    call timer_tic('Second Instance',2)
     call sleep(0.15)
-    call timer_stop('Second Instance')
+    call timer_toc('Second Instance')
     
-    call timer_start('First Thing',1)
+    call timer_tic('First Thing',1)
     call sleep(0.15)
-    call timer_stop('First Thing')
+    call timer_toc('First Thing')
 
-    call timer_start('Third Event',3,'c')
+    call timer_tic('Third Event',3,'c')
     call sleep(0.25)
-    call timer_stop('Third Event')
+    call timer_toc('Third Event')
 
-    call timer_start('Fourth Event',0)
+    call timer_tic('Fourth Event',0)
     call sleep(0.35)
-    call timer_stop('Fourth Event')
+    call timer_toc('Fourth Event')
 
   end do
   
