@@ -126,14 +126,10 @@ contains
       is_nvtx = .true.
     endif
     if(is_nvtx) then
-      if(nvtx_id > 0) then
-        if(present(nvtx_color)) then
-          call nvtxStartRange(trim(timer_name),id=nvtx_id,color=nvtx_color)
-        else
-          call nvtxStartRange(trim(timer_name),id=nvtx_id)
-        end if
-      else if(present(nvtx_color)) then
+      if(     present(nvtx_color)) then
         call nvtxStartRange(trim(timer_name),color=nvtx_color)
+      else if(nvtx_id > 0        ) then
+          call nvtxStartRange(trim(timer_name),id=nvtx_id)
       else
         call nvtxStartRange(trim(timer_name))
       end if
@@ -141,9 +137,11 @@ contains
     end if
 #endif
   end subroutine timer_tic
-  subroutine timer_toc(timer_name)
+  subroutine timer_toc(timer_name,ierror)
     character(*), intent(in) :: timer_name
+    integer, intent(out), optional :: ierror
     integer  :: idx
+    if(present(ierror)) ierror = 0
     idx = timer_search(timer_name)
     if (idx > 0) then
       timer_tictoc(idx)      = MPI_WTIME() - timer_tictoc(idx)
@@ -156,6 +154,8 @@ contains
         call nvtxEndRange 
 #endif
       end if
+    else
+      if(present(ierror)) ierror = 1
     end if
   end subroutine timer_toc
   subroutine timer_cleanup
@@ -173,13 +173,17 @@ contains
       end if
     end do
   end function timer_search
-  real(dp) function timer_time(timer_name)
+  real(dp) function timer_time(timer_name,ierror)
     character(*), intent(in) :: timer_name
+    integer, intent(out), optional :: ierror
     integer :: idx
+    if(present(ierror)) ierror = 0
     timer_time = -1._dp
     idx = timer_search(timer_name)
     if (idx > 0) then
       timer_time = timer_elapsed_acc(idx)
+    else
+      if(present(ierror)) ierror = 1
     end if
   end function timer_time
   subroutine concatenate_c(arr,val)
