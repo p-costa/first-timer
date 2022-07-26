@@ -151,7 +151,7 @@ contains
       timer_counts(idx)      = timer_counts(idx) + 1
       if(timer_is_nvtx(idx)) then
 #if defined(_USE_NVTX)
-        call nvtxEndRange 
+        call nvtxEndRange
 #endif
       end if
     else

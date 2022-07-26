@@ -7,10 +7,10 @@ program main
   end interface
   integer, parameter :: n = 3
   integer :: i,ierr,myid
-  
+
   call MPI_Init(ierr)
   call MPI_Comm_rank(MPI_COMM_WORLD,myid,ierr)
-  
+
   do i = 1,n
 
     if(myid == 0) print*,'Iteration #',i,'of',n
@@ -22,15 +22,15 @@ program main
     call sleep(0.05)
     call timer_toc('Sub-First Thing')
     call timer_toc('First Thing')
-    
+
     call timer_tic('Second Instance',2)
     call sleep(0.15)
     call timer_toc('Second Instance')
-    
+
     call timer_tic('Second Instance',2)
     call sleep(0.15)
     call timer_toc('Second Instance')
-    
+
     call timer_tic('First Thing',1)
     call sleep(0.15)
     call timer_toc('First Thing')
@@ -44,10 +44,10 @@ program main
     call timer_toc('Fourth Event')
 
   end do
-  
+
   call timer_print(myid)
   call timer_cleanup
-  
+
   call MPI_Finalize(ierr)
 contains
   subroutine sleep_r(s)

@@ -33,7 +33,7 @@ module mod_nvtx
     integer(C_INT) :: payloadType=0 ! NVTX_PAYLOAD_UNKNOWN = 0
     integer(C_INT) :: reserved0
     integer(C_INT64_T) :: payload   ! union uint,int,double
-    integer(C_INT) :: messageType=1  ! NVTX_MESSAGE_TYPE_ASCII     = 1 
+    integer(C_INT) :: messageType=1  ! NVTX_MESSAGE_TYPE_ASCII     = 1
     type(C_PTR) :: message  ! ascii char
   end type
   interface nvtxRangePush
