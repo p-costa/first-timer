@@ -53,8 +53,8 @@ contains
   subroutine sleep_r(s)
     implicit none
     interface
-      subroutine usleep(us) bind (C)
-        use iso_c_binding,only:c_int
+      subroutine usleep(us) bind(C)
+        use, intrinsic ::  iso_c_binding, only:c_int
         integer(c_int), value :: us
       end subroutine usleep
     end interface

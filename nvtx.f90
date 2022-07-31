@@ -3,7 +3,7 @@
 !
 module mod_nvtx
 #if defined(_USE_NVTX)
-  use iso_c_binding
+  use, intrinsic :: iso_c_binding
   implicit none
   enum, bind(c)
     enumerator :: COLOR_G = 1 ! green
@@ -39,12 +39,12 @@ module mod_nvtx
   interface nvtxRangePush
     ! push range with custom label and standard color
     subroutine nvtxRangePushA(name) bind(C, name='nvtxRangePushA')
-    use iso_c_binding
+    use, intrinsic :: iso_c_binding
     character(kind=C_CHAR) :: name(256)
     end subroutine
     ! push range with custom label and custom color
     subroutine nvtxRangePushEx(event) bind(C, name='nvtxRangePushEx')
-    use iso_c_binding
+    use, intrinsic :: iso_c_binding
     import :: nvtxEventAttributes
     type(nvtxEventAttributes) :: event
     end subroutine
