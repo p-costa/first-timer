@@ -124,7 +124,7 @@ contains
       is_nvtx = .true.
     else if(present(nvtx_color )) then
       is_nvtx = .true.
-    endif
+    end if
     if(is_nvtx) then
       if(     present(nvtx_color)) then
         call nvtxStartRange(trim(timer_name),color=nvtx_color)
