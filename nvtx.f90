@@ -67,7 +67,7 @@ contains
     trimmed_name=trim(name)//c_null_char
     ! move scalar trimmed_name into character array tempName
     do i=1,len(trim(name))+1
-       tempName(i) = trimmed_name(i:i)
+      tempName(i) = trimmed_name(i:i)
     end do
     if(present(color)) then
       select case(color)

@@ -30,7 +30,7 @@ contains
                              timing_results_max(:,:)
     integer  :: i,myid,nproc,ierr
 #if !defined(_TIMER)
-      return
+    return
 #endif
     !
     if(present(myid_arg)) then
@@ -85,13 +85,13 @@ contains
       end if
     end if
   end subroutine timer_print
-  subroutine timer_tic(timer_name,nvtx_id_fix,nvtx_color,nvtx_id_inc,nvtx_gpu_async)
+  subroutine timer_tic(timer_name,nvtx_id_fix,nvtx_color,nvtx_id_inc,nvtx_gpu_stream)
     !@cuf use cudafor
     character(*), intent(in) :: timer_name
-    integer         , intent(in   ), optional :: nvtx_id_fix    ! if <= 0, only label and no color
-    character(len=1), intent(in   ), optional :: nvtx_color     ! g/b/y/m/c/r/w following matplotlib's convention
-    integer         , intent(inout), optional :: nvtx_id_inc    ! to increment the id, e.g.: call timer_tic(name,nvtx_id_inc=i_nvtx)
-    logical         , intent(in   ), optional :: nvtx_gpu_async ! do not sync host and device
+    integer         , intent(in   ), optional :: nvtx_id_fix     ! if <= 0, only label and no color
+    character(len=1), intent(in   ), optional :: nvtx_color      ! g/b/y/m/c/r/w following matplotlib's convention
+    integer         , intent(inout), optional :: nvtx_id_inc     ! to increment the id, e.g.: call timer_tic(name,nvtx_id_inc=i_nvtx)
+    integer         , intent(in   ), optional :: nvtx_gpu_stream ! to optionally sync host/device over a stream/queue (asynchronous if < 0)
     integer :: idx,nvtx_id
     logical :: is_nvtx,is_gpu_sync
     !@cuf integer :: istat
@@ -110,17 +110,25 @@ contains
     end if
     if(is_nvtx) then
       is_gpu_sync = GPU_DEFAULT_SYNC_MODE
-      if(present(nvtx_gpu_async)) then
-        if(nvtx_gpu_async) then
+      if(present(nvtx_gpu_stream)) then
+        if(nvtx_gpu_stream < 0) then
           is_gpu_sync = .false.
         end if
       end if
       if(is_gpu_sync) then
+        if(.not.present(nvtx_gpu_stream)) then
 #if   defined(_OPENACC)
-        !$acc wait
+          !$acc wait
 #elif defined(_CUDA)
-        !@cuf istat=cudaDeviceSynchronize()
+          !@cuf istat=cudaDeviceSynchronize()
 #endif
+        else
+#if   defined(_OPENACC)
+          !$acc wait(nvtx_gpu_stream)
+#elif defined(_CUDA)
+          !@cuf istat=cudaStreamSynchronize(nvtx_gpu_stream)
+#endif
+        end if
       end if
       if(     present(nvtx_color)) then
         call nvtxStartRange(trim(timer_name),color=nvtx_color)
@@ -130,6 +138,10 @@ contains
         call nvtxStartRange(trim(timer_name))
       end if
     end if
+#endif
+#if !defined(_TIMER)
+    return
+#endif
     if(.not.allocated(timer_names)) then
       allocate(timer_names(      0), &
                timer_counts(     0), &
@@ -138,10 +150,6 @@ contains
                timer_elapsed_min(0), &
                timer_elapsed_max(0))
     end if
-#elif !defined(_TIMER)
-    return
-#endif
-    !
     idx = timer_search(timer_name)
     if (idx <= 0) then
       ntimers = ntimers + 1
@@ -155,30 +163,39 @@ contains
     end if
     timer_tictoc(idx) = MPI_WTIME()
   end subroutine timer_tic
-  subroutine timer_toc(timer_name,nvtx_gpu_async,ierror)
+  subroutine timer_toc(timer_name,nvtx_gpu_stream,ierror)
     !@cuf use cudafor
     character(*), intent(in) :: timer_name
-    logical, intent(in ), optional :: nvtx_gpu_async
+    integer, intent(in), optional :: nvtx_gpu_stream
     integer, intent(out), optional :: ierror
     integer :: idx
     logical :: is_gpu_sync
     !@cuf integer :: istat
 #if defined(_USE_NVTX)
     is_gpu_sync = GPU_DEFAULT_SYNC_MODE
-    if(present(nvtx_gpu_async)) then
-      if(nvtx_gpu_async) then
+    if(present(nvtx_gpu_stream)) then
+      if(nvtx_gpu_stream < 0) then
         is_gpu_sync = .false.
       end if
     end if
     if(is_gpu_sync) then
+      if(.not.present(nvtx_gpu_stream)) then
 #if   defined(_OPENACC)
-      !$acc wait
+        !$acc wait
 #elif defined(_CUDA)
-      !@cuf istat=cudaDeviceSynchronize()
+        !@cuf istat=cudaDeviceSynchronize()
 #endif
+      else
+#if   defined(_OPENACC)
+        !$acc wait(nvtx_gpu_stream)
+#elif defined(_CUDA)
+        !@cuf istat=cudaStreamSynchronize(nvtx_gpu_stream)
+#endif
+      end if
     end if
     call nvtxEndRange
-#elif !defined(_TIMER)
+#endif
+#if !defined(_TIMER)
     return
 #endif
     if(present(ierror)) ierror = 0
