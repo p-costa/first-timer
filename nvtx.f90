@@ -5,6 +5,8 @@ module mod_nvtx
 #if defined(_USE_NVTX)
   use, intrinsic :: iso_c_binding
   implicit none
+  private
+  public nvtxStartRange,nvtxEndRange
   enum, bind(c)
     enumerator :: COLOR_G = 1 ! green
     enumerator :: COLOR_B = 2 ! blue
@@ -23,7 +25,8 @@ module mod_nvtx
                                                  int(Z'00ff0000',kind=C_INT32_T), & ! 6 -> red
                                                  int(Z'00ffffff',kind=C_INT32_T)  & ! 7 -> white
                                                ]
-  character, private, target :: tempName(256)
+  integer  , parameter :: NAME_LEN_MAX = 256
+  character, target :: tempName(NAME_LEN_MAX)
   type, bind(C) :: nvtxEventAttributes
     integer(C_INT16_T) :: version=1
     integer(C_INT16_T) :: size=48 !
@@ -40,7 +43,7 @@ module mod_nvtx
     ! push range with custom label and standard color
     subroutine nvtxRangePushA(name) bind(C, name='nvtxRangePushA')
     use, intrinsic :: iso_c_binding
-    character(kind=C_CHAR) :: name(256)
+    character(kind=C_CHAR) :: name(*)
     end subroutine
     ! push range with custom label and custom color
     subroutine nvtxRangePushEx(event) bind(C, name='nvtxRangePushEx')
@@ -59,7 +62,7 @@ contains
     integer, optional :: id
     character(len=1), optional :: color ! g/b/y/m/c/r/w following matplotlib's convention
     type(nvtxEventAttributes) :: event
-    character(kind=c_char,len=256) :: trimmed_name
+    character(kind=c_char,len=NAME_LEN_MAX) :: trimmed_name
     integer :: i,icolor
     trimmed_name=trim(name)//c_null_char
     ! move scalar trimmed_name into character array tempName

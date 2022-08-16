@@ -1,3 +1,4 @@
+#define _TIMER 
 !
 ! a simple timer, see https://github.com/p-costa/mytimer
 !
@@ -11,14 +12,13 @@ module mod_timer
   private
   public :: timer_tic,timer_toc,timer_print,timer_cleanup
   !
-  logical, parameter :: GPU_DEFAULT_SYNC_MODE = .true.
+  logical, parameter :: GPU_DEFAULT_SYNC_MODE = .false.
   integer, parameter :: max_name_len = 50
   character(max_name_len), allocatable :: timer_names(:)
   integer , allocatable :: timer_counts(:)
   real(dp), allocatable :: timer_tictoc(:),timer_elapsed_acc(:), &
                                            timer_elapsed_min(:), &
                                            timer_elapsed_max(:)
-  logical , allocatable :: timer_is_nvtx(:)
   integer :: ntimers = 0
 contains
   subroutine timer_print(myid_arg)
@@ -29,6 +29,9 @@ contains
                              timing_results_min(:,:), &
                              timing_results_max(:,:)
     integer  :: i,myid,nproc,ierr
+#if !defined(_TIMER)
+      return
+#endif
     !
     if(present(myid_arg)) then
       myid = myid_arg
@@ -92,29 +95,6 @@ contains
     integer :: idx,nvtx_id
     logical :: is_nvtx,is_gpu_sync
     !@cuf integer :: istat
-    if(.not.allocated(timer_names)) then
-      allocate(timer_names(      0), &
-               timer_counts(     0), &
-               timer_tictoc(     0), &
-               timer_elapsed_acc(0), &
-               timer_elapsed_min(0), &
-               timer_elapsed_max(0), &
-               timer_is_nvtx(    0))
-    end if
-    !
-    idx = timer_search(timer_name)
-    if (idx <= 0) then
-      ntimers = ntimers + 1
-      call concatenate_c(timer_names,timer_name)
-      timer_counts      = [timer_counts     ,0          ]
-      timer_tictoc      = [timer_tictoc     ,0._dp      ]
-      timer_elapsed_acc = [timer_elapsed_acc,0._dp      ]
-      timer_elapsed_min = [timer_elapsed_min,huge(0._dp)]
-      timer_elapsed_max = [timer_elapsed_max,tiny(0._dp)]
-      timer_is_nvtx     = [timer_is_nvtx    ,.false.    ]
-      idx = ntimers
-    end if
-    timer_tictoc(idx) = MPI_WTIME()
 #if defined(_USE_NVTX)
     is_nvtx = .false.
     if(     present(nvtx_id_inc)) then
@@ -149,9 +129,31 @@ contains
       else
         call nvtxStartRange(trim(timer_name))
       end if
-      timer_is_nvtx(idx) = .true.
     end if
+    if(.not.allocated(timer_names)) then
+      allocate(timer_names(      0), &
+               timer_counts(     0), &
+               timer_tictoc(     0), &
+               timer_elapsed_acc(0), &
+               timer_elapsed_min(0), &
+               timer_elapsed_max(0))
+    end if
+#elif !defined(_TIMER)
+    return
 #endif
+    !
+    idx = timer_search(timer_name)
+    if (idx <= 0) then
+      ntimers = ntimers + 1
+      call concatenate_c(timer_names,timer_name)
+      timer_counts      = [timer_counts     ,0          ]
+      timer_tictoc      = [timer_tictoc     ,0._dp      ]
+      timer_elapsed_acc = [timer_elapsed_acc,0._dp      ]
+      timer_elapsed_min = [timer_elapsed_min,huge(0._dp)]
+      timer_elapsed_max = [timer_elapsed_max,tiny(0._dp)]
+      idx = ntimers
+    end if
+    timer_tictoc(idx) = MPI_WTIME()
   end subroutine timer_tic
   subroutine timer_toc(timer_name,nvtx_gpu_async,ierror)
     !@cuf use cudafor
@@ -161,6 +163,24 @@ contains
     integer :: idx
     logical :: is_gpu_sync
     !@cuf integer :: istat
+#if defined(_USE_NVTX)
+    is_gpu_sync = GPU_DEFAULT_SYNC_MODE
+    if(present(nvtx_gpu_async)) then
+      if(nvtx_gpu_async) then
+        is_gpu_sync = .false.
+      end if
+    end if
+    if(is_gpu_sync) then
+#if   defined(_OPENACC)
+      !$acc wait
+#elif defined(_CUDA)
+      !@cuf istat=cudaDeviceSynchronize()
+#endif
+    end if
+    call nvtxEndRange
+#elif !defined(_TIMER)
+    return
+#endif
     if(present(ierror)) ierror = 0
     idx = timer_search(timer_name)
     if (idx > 0) then
@@ -169,24 +189,6 @@ contains
       timer_elapsed_min(idx) = min(timer_elapsed_min(idx),timer_tictoc(idx))
       timer_elapsed_max(idx) = max(timer_elapsed_max(idx),timer_tictoc(idx))
       timer_counts(idx)      = timer_counts(idx) + 1
-      if(timer_is_nvtx(idx)) then
-        is_gpu_sync = GPU_DEFAULT_SYNC_MODE
-        if(present(nvtx_gpu_async)) then
-          if(nvtx_gpu_async) then
-            is_gpu_sync = .false.
-          end if
-        end if
-        if(is_gpu_sync) then
-#if   defined(_OPENACC)
-        !$acc wait
-#elif defined(_CUDA)
-        !@cuf istat=cudaDeviceSynchronize()
-#endif
-        end if
-#if defined(_USE_NVTX)
-        call nvtxEndRange
-#endif
-      endif
     else
       if(present(ierror)) ierror = 1
     end if
