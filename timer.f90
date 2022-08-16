@@ -24,16 +24,18 @@ contains
   subroutine timer_print(myid_arg)
     use, intrinsic :: iso_fortran_env, only: stdo => output_unit
     integer , parameter :: MYID_PRINT = 0
+    logical , parameter :: is_verbose_level_1 = .false.
+    logical , parameter :: is_verbose_level_2 = .false.
     integer , intent(in), optional :: myid_arg
     real(dp), allocatable :: timing_results_acc(:,:), &
                              timing_results_min(:,:), &
                              timing_results_max(:,:)
-    integer  :: i,myid,nproc,ierr
+    integer  :: i,myid,nproc,ierr,iend
     !
     if(present(myid_arg)) then
       myid = myid_arg
     else
-      myid = MYID_PRINT
+      call MPI_COMM_RANK(MPI_COMM_WORLD,myid,ierr)
     end if
     allocate(timing_results_acc(ntimers,3), &
              timing_results_min(ntimers,3), &
@@ -56,14 +58,16 @@ contains
       write(stdo,*) ''
       write(stdo,*) '*** timing results [s] ***'
       write(stdo,*) ''
-      if(nproc == 1) then
+      if(nproc == 1.or..not.is_verbose_level_1) then
         do i = 1,ntimers
           write(stdo,'(3A)'      ) 'Label: "',trim(timer_names(i)), '"'
           write(stdo,'(A,3E15.7)') 'Elapsed time:', timing_results_acc(i,3:3)
           write(stdo,'(A,I7)'    ) 'Number of calls:', timer_counts(i)
-          write(stdo,'(A,1E15.7)') 'Elapsed time (per call average):',timing_results_acc(i,3:3)/timer_counts(i)
-          write(stdo,'(A,1E15.7)') 'Elapsed time (per call minimum):',timing_results_min(i,3:3)
-          write(stdo,'(A,1E15.7)') 'Elapsed time (per call maximum):',timing_results_max(i,3:3)
+          write(stdo,'(A,1E15.7)') 'Average elapsed time per task (per call average):',timing_results_acc(i,3:3)/timer_counts(i)
+          if(is_verbose_level_2) then
+            write(stdo,'(A,1E15.7)') 'Average elapsed time per task (per call minimum):',timing_results_min(i,3:3)
+            write(stdo,'(A,1E15.7)') 'Average elapsed time per task (per call maximum):',timing_results_max(i,3:3)
+          endif
           write(stdo,*) ''
         end do
       else
@@ -73,10 +77,12 @@ contains
           write(stdo,'(A,I7)'    ) 'Number of calls:', timer_counts(i)
           write(stdo,'(A,3E15.7)') 'Maximum, minimum, average elapsed time per task (per call average):', &
                                     timing_results_acc(i,1:3)/timer_counts(i)
-          write(stdo,'(A,3E15.7)') 'Maximum, minimum, average elapsed time per task (per call minimum):', &
-                                    timing_results_min(i,1:3)
-          write(stdo,'(A,3E15.7)') 'Maximum, minimum, average elapsed time per task (per call maximum):', &
-                                    timing_results_max(i,1:3)
+          if(is_verbose_level_2) then
+            write(stdo,'(A,3E15.7)') 'Maximum, minimum, average elapsed time per task (per call minimum):', &
+                                      timing_results_min(i,1:3)
+            write(stdo,'(A,3E15.7)') 'Maximum, minimum, average elapsed time per task (per call maximum):', &
+                                      timing_results_max(i,1:3)
+          endif
           write(stdo,*) ''
         end do
       end if
