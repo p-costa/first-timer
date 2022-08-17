@@ -1,7 +1,9 @@
+! -
 !
 ! SPDX-FileCopyrightText: Copyright (c) 2022 Pedro Costa. All rights reserved.
 ! SPDX-License-Identifier: MIT
 !
+! -
 !
 ! a simple timer, see https://github.com/p-costa/first-timer
 !
