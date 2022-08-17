@@ -1,5 +1,9 @@
 !
-! a simple timer, see https://github.com/p-costa/mytimer
+! SPDX-FileCopyrightText: Copyright (c) 2022 Pedro Costa. All rights reserved.
+! SPDX-License-Identifier: MIT
+!
+!
+! a simple timer, see https://github.com/p-costa/first-timer
 !
 module mod_timer
   use, intrinsic :: iso_fortran_env, only: dp => real64

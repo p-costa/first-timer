@@ -34,3 +34,4 @@
 # Other
 *.log
 *.nsys-rep
+*.sqlite
