@@ -17,7 +17,7 @@ module mod_timer
   private
   public :: timer_tic,timer_toc,timer_print,timer_cleanup
   !
-  logical, parameter :: GPU_DEFAULT_SYNC_MODE = .true.
+  logical, parameter :: GPU_DEFAULT_SYNC = .true.
   integer, parameter :: max_name_len = 50
   character(max_name_len), allocatable :: timer_names(:)
   integer , allocatable :: timer_counts(:)
@@ -141,7 +141,7 @@ contains
       is_nvtx = .true.
     end if
     if(is_nvtx) then
-      is_gpu_sync = GPU_DEFAULT_SYNC_MODE
+      is_gpu_sync = GPU_DEFAULT_SYNC
       if(present(nvtx_gpu_stream)) then
         if(nvtx_gpu_stream < 0) then
           is_gpu_sync = .false.
@@ -190,7 +190,7 @@ contains
       timer_elapsed_max(idx) = max(timer_elapsed_max(idx),timer_tictoc(idx))
       timer_counts(idx)      = timer_counts(idx) + 1
       if(timer_is_nvtx(idx)) then
-        is_gpu_sync = GPU_DEFAULT_SYNC_MODE
+        is_gpu_sync = GPU_DEFAULT_SYNC
         if(present(nvtx_gpu_stream)) then
           if(nvtx_gpu_stream < 0) then
             is_gpu_sync = .false.
