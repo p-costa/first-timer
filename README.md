@@ -1,6 +1,6 @@
 ### Description
 
-Timing module to be used in codes which use MPI and possibly CUDA/OpenACC using NVTX markers.
+Timing module to be used in codes which use MPI and possibly CUDA/OpenACC using [NVTX](https://docs.nvidia.com/nvtx/index.html) markers.
 
  * Reports the average time per task for each tagged region by default, but more detailed reporting (minimum/maximum per call and/or per task) is supported too.
  * Times tagged code regions *a la MATLAB* (`timer_tic` and `timer_toc`) using `MPI_WTIME()`.
